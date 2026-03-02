@@ -1,0 +1,93 @@
+<div class="section-header">
+  <h2>Ejercicios Pastorales</h2>
+  <p id="ejerciciosCount"></p>
+</div>
+
+<div class="toolbar">
+  <div></div>
+  <button class="btn-action" onclick="openNewEjercicio()">+ Nuevo Ejercicio</button>
+</div>
+
+<div class="ejercicios-list" id="ejerciciosList">
+  <div class="cal-empty">Cargando...</div>
+</div>
+
+<!-- MODAL_START -->
+
+<!-- Modal: Crear/Editar ejercicio -->
+<div class="modal-overlay" id="modalEjercicio">
+  <div class="modal" style="max-width:520px;">
+    <h3 id="ejModalTitle">Nuevo Ejercicio</h3>
+    <input type="hidden" id="ejId" />
+
+    <div class="form-group">
+      <label>Título *</label>
+      <input type="text" id="ejTitle" placeholder="Ej. Ejercicios Cuaresma 2026" />
+    </div>
+    <div class="form-group">
+      <label>Descripción</label>
+      <input type="text" id="ejDesc" placeholder="Opcional" />
+    </div>
+    <div class="form-row two-col">
+      <div class="form-group">
+        <label>Fecha Inicio *</label>
+        <input type="date" id="ejFechaInicio" />
+      </div>
+      <div class="form-group">
+        <label>Fecha Fin</label>
+        <input type="date" id="ejFechaFin" />
+      </div>
+    </div>
+    <div class="form-row two-col">
+      <div class="form-group">
+        <label>Total de Días</label>
+        <input type="number" id="ejTotalDias" min="1" value="1" />
+      </div>
+      <div class="form-group">
+        <label>Asistencia Mínima (%)</label>
+        <input type="number" id="ejPorcentaje" min="1" max="100" value="75" />
+      </div>
+    </div>
+
+    <div class="error-msg" id="ejError"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalEjercicio')">Cancelar</button>
+      <button class="btn-action" onclick="saveEjercicio()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Finalizar ejercicio -->
+<div class="modal-overlay" id="modalFinalizarEj">
+  <div class="modal" style="max-width:420px;">
+    <h3>Finalizar Ejercicio</h3>
+    <input type="hidden" id="finalizarEjId" />
+    <div class="delete-warning">
+      <div class="delete-warning-icon">📋</div>
+      <p>Vas a finalizar <strong id="finalizarEjNombre"></strong>.</p>
+      <p style="margin-top:0.6rem;">La asistencia registrada se <strong>archivará</strong> para generar el reporte. Después podrás archivar el ejercicio para resetear la asistencia y comenzar uno nuevo.</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalFinalizarEj')">Cancelar</button>
+      <button class="btn-action" onclick="confirmarFinalizar()">Sí, finalizar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Eliminar ejercicio -->
+<div class="modal-overlay" id="modalDeleteEj">
+  <div class="modal" style="max-width:400px;">
+    <h3>Eliminar Ejercicio</h3>
+    <input type="hidden" id="deleteEjId" />
+    <div class="delete-warning">
+      <div class="delete-warning-icon">⚠️</div>
+      <p>¿Eliminar <strong id="deleteEjNombre"></strong>? Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalDeleteEj')">Cancelar</button>
+      <button class="btn-danger" onclick="executeDeleteEjercicio()">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL_END -->

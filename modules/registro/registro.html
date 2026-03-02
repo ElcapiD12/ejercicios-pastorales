@@ -1,0 +1,245 @@
+<!-- Tabs del módulo -->
+<div class="reg-module-tabs">
+  <button class="reg-tab-btn active" data-tab="tab-lista" onclick="showRegistroTab('tab-lista')">
+    👥 Lista de Miembros
+  </button>
+  <button class="reg-tab-btn" data-tab="tab-nuevo" onclick="showRegistroTab('tab-nuevo')">
+    ➕ Nuevo Registro
+  </button>
+</div>
+
+<!-- ══ TAB: LISTA DE MIEMBROS ══ -->
+<div id="tab-lista" class="reg-tab-content active">
+
+  <div class="section-header">
+    <h2>Miembros Registrados</h2>
+    <p id="membersCount"></p>
+  </div>
+
+  <div class="toolbar">
+    <div class="form-group" style="margin:0;flex:1;max-width:320px;">
+      <input type="text" id="membersSearch" placeholder="Buscar por nombre..."
+             oninput="searchMembers()" style="padding:0.5rem 0.8rem;" />
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>ID</th>
+          <th>Tipo</th>
+          <th>Teléfono</th>
+          <th>Talla</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="membersTable">
+        <tr><td colspan="6" class="empty-state">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ TAB: NUEVO REGISTRO ══ -->
+<div id="tab-nuevo" class="reg-tab-content">
+
+  <!-- PASO 1: CÁMARA -->
+  <div class="reg-step active" id="step-camera">
+    <div class="section-header">
+      <h2>Nuevo Registro</h2>
+      <p>Paso 1 — Captura facial</p>
+    </div>
+    <div class="reg-camera-wrap">
+      <div class="reg-camera-frame">
+        <video id="regVideo" autoplay muted playsinline></video>
+        <canvas id="regCanvas"></canvas>
+        <div class="reg-overlay-corners">
+          <span class="corner tl"></span><span class="corner tr"></span>
+          <span class="corner bl"></span><span class="corner br"></span>
+        </div>
+      </div>
+      <div id="regStatus" class="reg-status info">Iniciando cámara...</div>
+      <button class="btn-capture" id="btnCapturar" disabled onclick="capturarRostro()">
+        Capturar Rostro
+      </button>
+    </div>
+  </div>
+
+  <!-- PASO 2: FORMULARIO -->
+  <div class="reg-step" id="step-form">
+    <div class="section-header">
+      <h2>Nuevo Registro</h2>
+      <p>Paso 2 — Datos personales</p>
+    </div>
+    <div class="reg-form-layout">
+      <div class="reg-photo-col">
+        <div class="reg-photo-frame">
+          <img id="regPhotoPreview" src="" alt="Foto capturada" />
+        </div>
+        <button class="btn-secondary" onclick="volverCamara()">↩ Volver a capturar</button>
+        <input type="hidden" id="regPhotoData" />
+      </div>
+      <div class="reg-fields-col">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre Completo *</label>
+            <input type="text" id="regNombre" placeholder="Nombre completo" />
+          </div>
+        </div>
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label>Teléfono *</label>
+            <input type="tel" id="regTelefono" placeholder="10 dígitos" />
+          </div>
+          <div class="form-group">
+            <label>Teléfono de Emergencia</label>
+            <input type="tel" id="regTelefonoEmerg" placeholder="10 dígitos" />
+          </div>
+        </div>
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label>Fecha de Nacimiento *</label>
+            <input type="date" id="regFechaNac" />
+          </div>
+          <div class="form-group">
+            <label>Talla de Playera *</label>
+            <select id="regTalla" class="select-field">
+              <option value="">Seleccionar</option>
+              <option value="XS">XS</option><option value="S">S</option>
+              <option value="M">M</option><option value="L">L</option>
+              <option value="XL">XL</option><option value="XXL">XXL</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label>Domicilio</label>
+            <input type="text" id="regDomicilio" placeholder="Calle, número, colonia" />
+          </div>
+          <div class="form-group">
+            <label>Tipo de Miembro</label>
+            <select id="regTipoMiembro" class="select-field">
+              <option value="participante">Participante</option>
+              <option value="equipo">Equipo Base</option>
+            </select>
+          </div>
+        </div>
+        <div class="error-msg" id="regFormError"></div>
+        <div class="form-actions">
+          <button class="btn-primary" id="btnGuardarMiembro" onclick="guardarMiembro()">
+            Guardar Registro
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 3: CONFIRMACIÓN -->
+  <div class="reg-step" id="step-confirm">
+    <div class="reg-confirm-wrap">
+      <div class="reg-confirm-card">
+        <div class="confirm-icon">✓</div>
+        <h3>Registro Exitoso</h3>
+        <div class="reg-confirm-photo-wrap">
+          <img id="regConfirmPhoto" src="" alt="Foto" />
+        </div>
+        <div class="confirm-detail">
+          <span class="confirm-label">Nombre</span>
+          <span class="confirm-value" id="regConfirmName">—</span>
+        </div>
+        <div class="confirm-detail">
+          <span class="confirm-label">ID de Miembro</span>
+          <span class="confirm-id" id="regConfirmId">—</span>
+        </div>
+        <button class="btn-primary" onclick="nuevoRegistro()" style="margin-top:1.5rem;">
+          Registrar otro miembro
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL_START -->
+
+<!-- Modal: Editar miembro -->
+<div class="modal-overlay" id="modalEditMember">
+  <div class="modal" style="max-width:540px;">
+    <h3>Editar Miembro
+      <span id="editMemberMemberId" style="font-size:0.72rem;color:var(--gold-dark);letter-spacing:0.08em;margin-left:0.8rem;"></span>
+    </h3>
+    <input type="hidden" id="editMemberId" />
+    <div class="form-row two-col">
+      <div class="form-group">
+        <label>Nombre Completo *</label>
+        <input type="text" id="editMemberNombre" />
+      </div>
+      <div class="form-group">
+        <label>Tipo de Miembro</label>
+        <select id="editMemberTipo" class="select-field">
+          <option value="participante">Participante</option>
+          <option value="equipo">Equipo Base</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row two-col">
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input type="tel" id="editMemberTelefono" />
+      </div>
+      <div class="form-group">
+        <label>Teléfono de Emergencia</label>
+        <input type="tel" id="editMemberEmerg" />
+      </div>
+    </div>
+    <div class="form-row two-col">
+      <div class="form-group">
+        <label>Fecha de Nacimiento</label>
+        <input type="date" id="editMemberFecha" />
+      </div>
+      <div class="form-group">
+        <label>Talla de Playera</label>
+        <select id="editMemberTalla" class="select-field">
+          <option value="">Seleccionar</option>
+          <option value="XS">XS</option><option value="S">S</option>
+          <option value="M">M</option><option value="L">L</option>
+          <option value="XL">XL</option><option value="XXL">XXL</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Domicilio</label>
+      <input type="text" id="editMemberDomicilio" />
+    </div>
+    <div class="error-msg" id="editMemberError"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalEditMember')">Cancelar</button>
+      <button class="btn-action" onclick="saveEditMember()">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Confirmar eliminación -->
+<div class="modal-overlay" id="modalDeleteMember">
+  <div class="modal" style="max-width:420px;">
+    <h3>Eliminar Miembro</h3>
+    <input type="hidden" id="deleteMemberId" />
+    <input type="hidden" id="deleteMemberCode2" />
+    <div class="delete-warning">
+      <div class="delete-warning-icon">⚠️</div>
+      <p>Estás a punto de eliminar a <strong id="deleteMemberName"></strong>
+      (<span id="deleteMemberCode" style="font-family:'Cinzel',serif;font-size:0.85rem;color:var(--gold-dark);"></span>).</p>
+      <p style="margin-top:0.6rem;">Se eliminará <strong>todo su historial</strong> de asistencia y cooperación. Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="error-msg" id="deleteMemberError"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalDeleteMember')">Cancelar</button>
+      <button class="btn-danger" style="padding:0.55rem 1.3rem;" onclick="executeDeleteMember()">
+        Sí, eliminar
+      </button>
+    </div>
+  </div>
+</div>
+<!-- MODAL_END -->

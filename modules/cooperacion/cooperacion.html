@@ -1,0 +1,199 @@
+<div class="section-header">
+  <h2>Cooperaciones</h2>
+  <p>Control de pagos y aportaciones</p>
+</div>
+
+<!-- Resumen financiero -->
+<div class="coop-resumen">
+  <div class="coop-res-card">
+    <span class="coop-res-value" id="coopResTotal">—</span>
+    <span class="coop-res-label">Total Miembros</span>
+  </div>
+  <div class="coop-res-card success">
+    <span class="coop-res-value" id="coopResLiquidados">—</span>
+    <span class="coop-res-label">Liquidados</span>
+  </div>
+  <div class="coop-res-card warning">
+    <span class="coop-res-value" id="coopResAnticipo">—</span>
+    <span class="coop-res-label">Con Anticipo</span>
+  </div>
+  <div class="coop-res-card danger">
+    <span class="coop-res-value" id="coopResPendientes">—</span>
+    <span class="coop-res-label">Pendientes</span>
+  </div>
+</div>
+
+<!-- Resumen monetario -->
+<div class="coop-money-resumen">
+  <div class="coop-money-item">
+    <span class="coop-money-label">Monto Total Esperado</span>
+    <span class="coop-money-value" id="coopResMontoTotal">—</span>
+  </div>
+  <div class="coop-money-item">
+    <span class="coop-money-label">Total Recibido</span>
+    <span class="coop-money-value success" id="coopResRecibido">—</span>
+  </div>
+  <div class="coop-money-item">
+    <span class="coop-money-label">Total Pendiente</span>
+    <span class="coop-money-value danger" id="coopResTotalPend">—</span>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar" style="margin-top:1.5rem;">
+  <div class="coop-filters">
+    <button class="coop-filter-btn active" data-filter="todos"      onclick="setCoopFilter('todos')">Todos</button>
+    <button class="coop-filter-btn"        data-filter="pendientes" onclick="setCoopFilter('pendientes')">Pendientes</button>
+    <button class="coop-filter-btn"        data-filter="anticipo"   onclick="setCoopFilter('anticipo')">Con Anticipo</button>
+    <button class="coop-filter-btn"        data-filter="liquidados" onclick="setCoopFilter('liquidados')">Liquidados</button>
+  </div>
+  <div style="display:flex;gap:0.6rem;align-items:center;">
+    <div class="form-group" style="margin:0;">
+      <input type="text" id="coopSearch" placeholder="Buscar miembro..." oninput="coopSearch()"
+             style="padding:0.5rem 0.8rem;font-size:0.9rem;" />
+    </div>
+    <button class="btn-action" onclick="openModal('modalMontoBase')">
+      Monto Base: <span id="coopMontoBaseDisplay">—</span>
+    </button>
+  </div>
+</div>
+
+<!-- Tabla -->
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>ID</th>
+        <th>Monto</th>
+        <th>Anticipo</th>
+        <th>Pendiente</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="coopTable">
+      <tr><td colspan="7" class="empty-state">Cargando...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL_START -->
+
+<!-- Modal: Editar cooperación -->
+<div class="modal-overlay" id="modalCoopEdit">
+  <div class="modal">
+    <h3>Editar Cooperación</h3>
+    <input type="hidden" id="coopEditMemberId" />
+    <input type="hidden" id="coopEditCoopId" />
+
+    <div class="coop-modal-member">
+      <span class="coop-modal-name" id="coopModalName">—</span>
+      <span class="coop-modal-id"   id="coopModalId">—</span>
+    </div>
+
+    <div class="form-row two-col">
+      <div class="form-group">
+        <label>Monto Total</label>
+        <input type="number" id="coopEditMonto" min="0" step="0.01" />
+      </div>
+      <div class="form-group">
+        <label>Anticipo Recibido</label>
+        <input type="number" id="coopEditAnticipo" min="0" step="0.01" placeholder="0" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Notas</label>
+      <input type="text" id="coopEditNotas" placeholder="Opcional" />
+    </div>
+
+    <div class="coop-liquidado-row">
+      <label class="coop-check-label">
+        <input type="checkbox" id="coopEditLiquidado" />
+        <span>Marcar como Liquidado</span>
+      </label>
+    </div>
+
+    <div class="error-msg" id="coopEditError"></div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalCoopEdit')">Cancelar</button>
+      <button class="btn-action" onclick="saveCoopEdit()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Cambiar monto base -->
+<div class="modal-overlay" id="modalMontoBase">
+  <div class="modal" style="max-width:380px;">
+    <h3>Monto Base Global</h3>
+    <p style="font-style:italic;color:var(--brown-light);margin-bottom:1.2rem;font-size:0.95rem;">
+      Este monto se aplicará a los miembros que no tengan una tarifa especial definida.
+    </p>
+    <div class="form-group">
+      <label>Nuevo Monto Base</label>
+      <input type="number" id="coopNuevoMonto" min="0" step="0.01" placeholder="Ej. 500" />
+    </div>
+    <div class="error-msg" id="coopMontoError"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalMontoBase')">Cancelar</button>
+      <button class="btn-action" onclick="saveMontoBase()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL_END -->
+
+<!-- ══ SECCIÓN PLAYERAS ══ -->
+<div style="margin-top:2.5rem;">
+  <div class="section-header" style="margin-top:1rem;">
+    <h2>Reporte de Playeras</h2>
+    <p>Estado de pago por talla</p>
+  </div>
+
+  <div class="toolbar">
+    <div class="playera-tallas-wrap" id="playeraTallasResumen"></div>
+    <button class="btn-action" onclick="openModal('modalMontoPlayera')">
+      Precio Playera: <span id="playeraMontoDisplay">—</span>
+    </button>
+  </div>
+
+  <div class="table-wrap" style="margin-top:1rem;">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>ID</th>
+          <th>Talla</th>
+          <th>Tipo</th>
+          <th>Estado Pago</th>
+        </tr>
+      </thead>
+      <tbody id="playeraTableBody">
+        <tr><td colspan="5" class="empty-state">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL: Monto playera -->
+<!-- MODAL_START -->
+<div class="modal-overlay" id="modalMontoPlayera">
+  <div class="modal" style="max-width:380px;">
+    <h3>Precio de Playera</h3>
+    <p style="font-style:italic;color:var(--brown-light);margin-bottom:1.2rem;font-size:0.95rem;">
+      Define el precio base de la playera para este grupo.
+    </p>
+    <div class="form-group">
+      <label>Nuevo Precio</label>
+      <input type="number" id="playeraNuevoMonto" min="0" step="0.01" placeholder="Ej. 200" />
+    </div>
+    <div class="error-msg" id="playeraMontoError"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalMontoPlayera')">Cancelar</button>
+      <button class="btn-action" onclick="saveMontoPlayera()">Guardar</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL_END -->

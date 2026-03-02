@@ -1,0 +1,313 @@
+/* ══════════════════════════════════════════
+   REGISTRO — STEPS
+══════════════════════════════════════════ */
+.reg-step { display: none; }
+.reg-step.active { display: block; animation: fadeUp 0.35s ease both; }
+
+/* ── CÁMARA ── */
+.reg-camera-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1rem 0;
+}
+
+.reg-camera-frame {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  background: #1a1008;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+}
+
+.reg-camera-frame video,
+.reg-camera-frame canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.reg-camera-frame canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Esquinas decorativas */
+.reg-overlay-corners {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: var(--gold);
+  border-style: solid;
+}
+.corner.tl { top: 10px; left: 10px;  border-width: 2px 0 0 2px; }
+.corner.tr { top: 10px; right: 10px; border-width: 2px 2px 0 0; }
+.corner.bl { bottom: 10px; left: 10px;  border-width: 0 0 2px 2px; }
+.corner.br { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
+
+/* Status */
+.reg-status {
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+  min-height: 2rem;
+  text-align: center;
+}
+
+.reg-status.info    { color: var(--brown-light); }
+.reg-status.loading { color: var(--gold-dark); }
+.reg-status.success { color: #1a7a44; }
+.reg-status.error   { color: var(--error); }
+
+/* Botón capturar */
+.btn-capture {
+  padding: 0.8rem 3rem;
+  background: var(--brown);
+  color: var(--gold-light);
+  border: 1px solid rgba(201,168,76,0.3);
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+}
+
+.btn-capture:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-capture.ready {
+  background: var(--brown);
+  border-color: var(--gold);
+  box-shadow: 0 0 16px rgba(201,168,76,0.2);
+  animation: pulse-gold 1.5s ease infinite;
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 8px rgba(201,168,76,0.2); }
+  50%       { box-shadow: 0 0 20px rgba(201,168,76,0.45); }
+}
+
+.btn-capture:not(:disabled):hover { background: var(--brown-light); }
+
+/* ── FORMULARIO ── */
+.reg-form-layout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.reg-photo-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  position: sticky;
+  top: 80px;
+}
+
+.reg-photo-frame {
+  width: 180px;
+  height: 180px;
+  border: 1px solid rgba(201,168,76,0.35);
+  overflow: hidden;
+  background: #1a1008;
+  box-shadow: 0 4px 16px var(--shadow);
+}
+
+.reg-photo-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btn-secondary {
+  padding: 0.5rem 1rem;
+  background: none;
+  color: var(--brown-light);
+  border: 1px solid rgba(61,43,31,0.2);
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.btn-secondary:hover { background: rgba(61,43,31,0.05); }
+
+.form-row { margin-bottom: 0.2rem; }
+
+.form-row.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-actions {
+  margin-top: 1.2rem;
+}
+
+.form-actions .btn-primary {
+  width: auto;
+  padding: 0.8rem 2.5rem;
+}
+
+/* ── CONFIRMACIÓN ── */
+.reg-confirm-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.reg-confirm-card {
+  background: var(--white);
+  border: 1px solid rgba(201,168,76,0.3);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+  box-shadow: 0 8px 32px var(--shadow);
+  animation: fadeUp 0.4s ease both;
+  position: relative;
+}
+
+.reg-confirm-card::before,
+.reg-confirm-card::after {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  border-color: var(--gold); border-style: solid;
+}
+.reg-confirm-card::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+.reg-confirm-card::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+
+.confirm-icon {
+  width: 52px; height: 52px;
+  background: rgba(39,174,96,0.1);
+  border: 1px solid rgba(39,174,96,0.3);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  margin: 0 auto 1rem;
+  color: #1a7a44;
+}
+
+.reg-confirm-card h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  color: var(--brown);
+  margin-bottom: 1.2rem;
+}
+
+.reg-confirm-photo-wrap {
+  width: 120px; height: 120px;
+  border: 1px solid rgba(201,168,76,0.3);
+  overflow: hidden;
+  margin: 0 auto 1.4rem;
+}
+
+.reg-confirm-photo-wrap img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+
+.confirm-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(201,168,76,0.1);
+  font-size: 0.95rem;
+}
+
+.confirm-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+}
+
+.confirm-value { color: var(--brown); font-weight: 600; }
+
+.confirm-id {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  color: var(--brown);
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+  .reg-form-layout {
+    grid-template-columns: 1fr;
+  }
+  .reg-photo-col {
+    flex-direction: row;
+    position: static;
+    align-items: flex-start;
+  }
+  .reg-photo-frame { width: 110px; height: 110px; flex-shrink: 0; }
+  .form-row.two-col { grid-template-columns: 1fr; }
+}
+
+/* ── Tabs del módulo registro ── */
+.reg-module-tabs {
+  display: flex;
+  gap: 0.3rem;
+  margin-bottom: 1.8rem;
+  border-bottom: 2px solid rgba(201,168,76,0.2);
+}
+
+.reg-tab-btn {
+  padding: 0.65rem 1.3rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brown-light);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.reg-tab-btn:hover:not(.active) { color: var(--brown); }
+.reg-tab-btn.active {
+  color: var(--brown);
+  border-bottom-color: var(--gold);
+}
+
+.reg-tab-content { display: none; }
+.reg-tab-content.active { display: block; animation: fadeUp 0.35s ease both; }
+
+/* ── Modal eliminar ── */
+.delete-warning {
+  background: rgba(192,57,43,0.06);
+  border: 1px solid rgba(192,57,43,0.2);
+  border-left: 3px solid var(--error);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+.delete-warning-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ejercicios Pastorales</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+
+  <!-- CSS Base -->
+  <link rel="stylesheet" href="styles/base.css" />
+
+  <!-- CSS Módulos -->
+  <link rel="stylesheet" href="styles/usuarios.css" />
+  <link rel="stylesheet" href="styles/registro.css" />
+  <link rel="stylesheet" href="styles/asistencia.css" />
+  <link rel="stylesheet" href="styles/calendario.css" />
+  <link rel="stylesheet" href="styles/cooperacion.css" />
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+<!-- LOGIN PAGE -->
+<section id="loginPage" class="page active">
+  <div class="login-container">
+    <div class="login-header">
+      <div class="cross-emblem">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="30" stroke="#C9A84C" stroke-width="1"/>
+          <circle cx="32" cy="32" r="24" stroke="#C9A84C" stroke-width="0.5" stroke-dasharray="3 3"/>
+          <rect x="29" y="10" width="6" height="44" rx="1" fill="#C9A84C"/>
+          <rect x="14" y="22" width="36" height="6" rx="1" fill="#C9A84C"/>
+          <circle cx="32" cy="32" r="4" fill="#FAF6EE" stroke="#C9A84C" stroke-width="1"/>
+        </svg>
+      </div>
+      <h1>Ejercicios Pastorales</h1>
+      <p>Sistema de Registro y Asistencia</p>
+    </div>
+
+    <div class="login-card">
+      <div class="form-group">
+        <label for="loginEmail">Correo Electrónico</label>
+        <input type="email" id="loginEmail" placeholder="correo@ejemplo.com" autocomplete="email" />
+      </div>
+
+      <div class="form-group">
+        <label for="loginPassword">Contraseña</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+
+      <button class="btn-primary" id="loginBtn">Ingresar</button>
+      <div class="error-msg" id="loginError"></div>
+    </div>
+  </div>
+</section>
+
+<!-- APP PAGE -->
+<section id="appPage" class="page">
+
+  <nav class="topnav">
+    <div class="topnav-brand">
+      <svg width="20" height="20" viewBox="0 0 64 64" fill="none">
+        <rect x="29" y="8" width="6" height="48" rx="1" fill="#C9A84C"/>
+        <rect x="12" y="22" width="40" height="6" rx="1" fill="#C9A84C"/>
+      </svg>
+      Ejercicios Pastorales
+    </div>
+
+    <div class="topnav-right">
+      <div class="user-badge">
+        <span id="navUserName">—</span>
+        <span class="role-pill" id="navUserRole">—</span>
+        <span class="group-pill" id="navGroupName"></span>
+      </div>
+      <button class="btn-logout" id="logoutBtn">Salir</button>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="nav-tabs" id="navTabs"></div>
+
+    <!-- BIENVENIDA -->
+    <div class="view active" id="viewWelcome">
+      <div class="section-header">
+        <h2>Bienvenido</h2>
+        <p id="welcomeGroupName">Selecciona una opción para continuar</p>
+      </div>
+      <div class="welcome-grid" id="welcomeGrid"></div>
+    </div>
+
+    <!-- Contenedores dinámicos -->
+    <div id="view-usuarios"    class="view"></div>
+    <div id="view-registro"    class="view"></div>
+    <div id="view-asistencia"  class="view"></div>
+    <div id="view-calendario"  class="view"></div>
+    <div id="view-cooperacion" class="view"></div>
+  </main>
+</section>
+
+
+<!-- UN SOLO CONTENEDOR DE MODALES -->
+<div id="modals-container">
+
+  <div class="modal-overlay" id="modalUser">
+    <div class="modal">
+
+      <h2 id="modalUserTitle">Nuevo Usuario</h2>
+
+      <input type="hidden" id="modalUserId">
+
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input type="text" id="modalUserName">
+      </div>
+
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="modalUserEmail">
+      </div>
+
+      <div class="form-group" id="passwordGroup">
+        <label>Contraseña</label>
+        <input type="password" id="modalUserPassword">
+      </div>
+
+      <div class="form-group">
+        <label>Rol</label>
+        <select id="modalUserRole"></select>
+      </div>
+
+      <div class="form-group">
+        <label>Pastoral / Grupo</label>
+        <select id="modalUserGroup">
+          <option value="">Seleccionar grupo</option>
+          <option value="kairos">Jóvenes Kairós</option>
+          <option value="nazarenos">Adolescentes Nazarenos</option>
+        </select>
+      </div>
+
+      <div id="modalUserError" class="error-msg"></div>
+
+      <div class="modal-buttons">
+        <button class="btn-secondary" onclick="closeModal('modalUser')">
+          Cancelar
+        </button>
+        <button class="btn-primary" onclick="saveUser()">
+          Guardar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- SCRIPTS -->
+<script src="app.js" defer></script>
+<script src="modules/usuarios/usuarios.js" defer></script>
+<script src="modules/registro/registro.js" defer></script>
+<script src="modules/asistencia/asistencia.js" defer></script>
+<script src="modules/calendario/calendario.js" defer></script>
+<script src="modules/cooperacion/cooperacion.js" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,77 @@
+<div class="section-header">
+  <h2>Gestión de Usuarios</h2>
+  <p>Administra los accesos al sistema</p>
+</div>
+<div class="toolbar">
+  <span id="usersCount" class="count-label"></span>
+  <button class="btn-action" onclick="openCreateUser()">+ Nuevo Usuario</button>
+</div>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>Rol</th>
+        <th>Grupo</th>
+        <th>Perfil</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="usersTable">
+      <tr><td colspan="7" class="empty-state">Cargando...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL_START -->
+<div class="modal-overlay" id="modalUser">
+  <div class="modal">
+      <h3 id="modalUserTitle">Nuevo Usuario</h3>
+    <input type="hidden" id="modalUserId" />
+
+    <div class="form-row two-col">
+      <div class="form-group">
+        <label>Nombre Completo</label>
+        <input type="text" id="modalUserName" placeholder="Ej. Juan Pérez" />
+      </div>
+      <div class="form-group">
+        <label>Grupo</label>
+        <select id="modalUserGroup" class="select-field">
+          <option value="">— Sin grupo (Superadmin) —</option>
+          <option value="kairos">Jóvenes Kairós</option>
+          <option value="nazarenos">Adolescentes Nazarenos</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Correo Electrónico</label>
+      <input type="email" id="modalUserEmail" placeholder="correo@ejemplo.com" />
+    </div>
+    <div class="form-group" id="passwordGroup">
+  <label>Contraseña</label>
+  <input type="text" id="modalUserPassword" value="Pascua!2026" />
+  <span style="font-size:0.72rem;font-style:italic;color:var(--brown-light);">
+    Contraseña por defecto — el usuario puede cambiarla después
+  </span>
+</div>
+    <div class="form-group">
+      <label>Rol</label>
+      <select id="modalUserRole" class="select-field">
+        <option value="registrador">Registrador</option>
+        <option value="secretario">Secretario</option>
+        <option value="administrador">Administrador</option>
+        <option value="contador">Contador</option>
+        <option value="equipo">Equipo Base</option>
+      </select>
+    </div>
+
+    <div class="error-msg" id="modalUserError"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalUser')">Cancelar</button>
+      <button class="btn-action" onclick="saveUser()">Guardar</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL_END -->
