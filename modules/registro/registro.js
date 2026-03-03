@@ -419,6 +419,8 @@ function resetRegistroForm() {
   if (tipo) tipo.value = 'participante';
   const btn = document.getElementById('btnCapturar');
   if (btn) { btn.disabled = true; btn.classList.remove('ready'); }
+
+  showRegistroStep('step-camera');
 }
 
 function showRegistroStep(stepId) {
