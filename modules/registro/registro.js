@@ -228,7 +228,6 @@ async function startCamera() {
   const canvas = document.getElementById('regCanvas');
   setRegistroStatus('Iniciando cámara...', 'loading');
   try {
-    // En móvil usar cámara trasera, en desktop la disponible
     const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
     const constraints = {
       video: {
@@ -237,23 +236,25 @@ async function startCamera() {
       },
       audio: false
     };
-    // Intentar con preferencia, si falla usar cualquier cámara
+
     try {
       regStream = await navigator.mediaDevices.getUserMedia(constraints);
     } catch {
       regStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
     }
+
     video.srcObject = regStream;
     await video.play();
     canvas.width  = video.videoWidth  || 640;
     canvas.height = video.videoHeight || 480;
+
+    showRegistroStep('step-camera');
     setRegistroStatus('Coloca tu rostro en el encuadre', 'info');
     startDetectionLoop();
   } catch (err) {
     setRegistroStatus('No se pudo acceder a la cámara.', 'error');
   }
 }
-
 function startDetectionLoop() {
   const video  = document.getElementById('regVideo');
   const canvas = document.getElementById('regCanvas');
@@ -270,34 +271,35 @@ function startDetectionLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (detection) {
-      consecutive++;
-      const box        = detection.detection.box;
-      const stabilized = consecutive >= 3;
+  consecutive++;
+  const box        = detection.detection.box;
+  const stabilized = consecutive >= 3;
 
-      ctx.strokeStyle = stabilized ? '#C9A84C' : 'rgba(201,168,76,0.5)';
-      ctx.lineWidth   = 2;
-      ctx.strokeRect(box.x, box.y, box.width, box.height);
+  ctx.strokeStyle = stabilized ? '#C9A84C' : 'rgba(201,168,76,0.5)';
+  ctx.lineWidth   = 2;
+  ctx.strokeRect(box.x, box.y, box.width, box.height);
 
-      ctx.fillStyle = stabilized ? 'rgba(201,168,76,0.8)' : 'rgba(201,168,76,0.3)';
-      detection.landmarks.positions.forEach(pt => {
-        ctx.beginPath(); ctx.arc(pt.x, pt.y, 1.5, 0, Math.PI * 2); ctx.fill();
-      });
+  ctx.fillStyle = stabilized ? 'rgba(201,168,76,0.8)' : 'rgba(201,168,76,0.3)';
+  detection.landmarks.positions.forEach(pt => {
+    ctx.beginPath(); ctx.arc(pt.x, pt.y, 1.5, 0, Math.PI * 2); ctx.fill();
+  });
 
-      if (stabilized) {
-        regFaceDetected = true;
-        regDescriptor   = detection.descriptor;
-        setRegistroStatus('✓ Rostro detectado correctamente', 'success');
-        btn.disabled = false;
-        btn.classList.add('ready');
-      }
-    } else {
-      consecutive     = 0;
-      regFaceDetected = false;
-      regDescriptor   = null;
-      setRegistroStatus('Coloca tu rostro en el encuadre', 'info');
-      btn.disabled = true;
-      btn.classList.remove('ready');
-    }
+  if (stabilized) {
+    regFaceDetected = true;
+    if (!regDescriptor) regDescriptor = detection.descriptor; // solo guarda una vez
+    setRegistroStatus('✓ Rostro detectado — presiona Capturar', 'success');
+    btn.disabled = false;
+    btn.classList.add('ready');
+  }
+} else {
+  consecutive = 0;
+  // NO resetear regDescriptor ni regFaceDetected aquí
+  if (!regDescriptor) {
+    setRegistroStatus('Coloca tu rostro en el encuadre', 'info');
+    btn.disabled = true;
+    btn.classList.remove('ready');
+  }
+}
 
     detectionLoop = requestAnimationFrame(detect);
   }
