@@ -228,9 +228,21 @@ async function startCamera() {
   const canvas = document.getElementById('regCanvas');
   setRegistroStatus('Iniciando cámara...', 'loading');
   try {
-    regStream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 640, height: 480, facingMode: 'user' }, audio: false
-    });
+    // En móvil usar cámara trasera, en desktop la disponible
+    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+    const constraints = {
+      video: {
+        width: 640, height: 480,
+        facingMode: isMobile ? { ideal: 'environment' } : 'user'
+      },
+      audio: false
+    };
+    // Intentar con preferencia, si falla usar cualquier cámara
+    try {
+      regStream = await navigator.mediaDevices.getUserMedia(constraints);
+    } catch {
+      regStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    }
     video.srcObject = regStream;
     await video.play();
     canvas.width  = video.videoWidth  || 640;
@@ -271,21 +283,21 @@ function startDetectionLoop() {
         ctx.beginPath(); ctx.arc(pt.x, pt.y, 1.5, 0, Math.PI * 2); ctx.fill();
       });
 
-          if (stabilized) {
-      regFaceDetected = true;
-      if (!regDescriptor) regDescriptor = detection.descriptor; // ← agrega el if
-      setRegistroStatus('✓ Rostro detectado correctamente', 'success');
-      btn.disabled = false;
-      btn.classList.add('ready');
-    }
+      if (stabilized) {
+        regFaceDetected = true;
+        regDescriptor   = detection.descriptor;
+        setRegistroStatus('✓ Rostro detectado correctamente', 'success');
+        btn.disabled = false;
+        btn.classList.add('ready');
+      }
     } else {
-  consecutive     = 0;
-  regFaceDetected = false;
-  // regDescriptor = null;  ← comenta o elimina esta línea
-  setRegistroStatus('Coloca tu rostro en el encuadre', 'info');
-  btn.disabled = true;
-  btn.classList.remove('ready');
-}
+      consecutive     = 0;
+      regFaceDetected = false;
+      regDescriptor   = null;
+      setRegistroStatus('Coloca tu rostro en el encuadre', 'info');
+      btn.disabled = true;
+      btn.classList.remove('ready');
+    }
 
     detectionLoop = requestAnimationFrame(detect);
   }
@@ -295,19 +307,16 @@ function startDetectionLoop() {
 function capturarRostro() {
   if (!regFaceDetected || !regDescriptor) return;
 
-  // 1. PRIMERO tomar la foto mientras el video aún está activo
+  cancelAnimationFrame(detectionLoop);
+  stopCamera();
+
   const video = document.getElementById('regVideo');
   const snap  = document.createElement('canvas');
   snap.width  = video.videoWidth;
   snap.height = video.videoHeight;
   snap.getContext('2d').drawImage(video, 0, 0);
+
   const photoDataUrl = snap.toDataURL('image/jpeg', 0.8);
-
-  // 2. DESPUÉS detener la cámara
-  cancelAnimationFrame(detectionLoop);
-  stopCamera();
-
-  // 3. Mostrar la foto
   document.getElementById('regPhotoPreview').src = photoDataUrl;
   document.getElementById('regPhotoData').value  = photoDataUrl;
 
@@ -410,9 +419,6 @@ function resetRegistroForm() {
   if (tipo) tipo.value = 'participante';
   const btn = document.getElementById('btnCapturar');
   if (btn) { btn.disabled = true; btn.classList.remove('ready'); }
-
-  // ← AGREGAR ESTA LÍNEA:
-  showRegistroStep('step-camera');
 }
 
 function showRegistroStep(stepId) {

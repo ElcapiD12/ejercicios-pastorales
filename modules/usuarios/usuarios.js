@@ -21,7 +21,6 @@ async function loadUsers() {
 
   let query = sb.from('user_profiles').select('*').order('group_id').order('full_name');
 
-  // Si no es superadmin, solo ve su grupo
   if (currentUser.role !== 'superadmin') {
     query = query.eq('group_id', currentUser.group_id);
   }
@@ -36,7 +35,6 @@ async function loadUsers() {
   document.getElementById('usersCount').textContent =
     `${data.length} usuario${data.length !== 1 ? 's' : ''}`;
 
-  // Agrupar por group_id para mostrar separados
   const grouped = {};
   data.forEach(u => {
     const key = u.group_id || 'superadmin';
@@ -83,7 +81,9 @@ async function loadUsers() {
             ${canEdit && u.id !== currentUser.id ? `
               <button class="btn-danger" onclick="toggleUserStatus('${u.id}', ${u.is_active})">
                 ${u.is_active ? 'Desactivar' : 'Activar'}
-              </button>` : ''}
+              </button>
+              <button class="btn-danger" onclick="deleteUser('${u.id}')">Eliminar</button>
+            ` : ''}
           </td>
         </tr>
       `;
@@ -91,6 +91,15 @@ async function loadUsers() {
   });
 
   tbody.innerHTML = html;
+}
+
+// ─── Eliminar usuario
+async function deleteUser(userId) {
+  if (!confirm('¿Eliminar este usuario permanentemente? Esta acción no se puede deshacer.')) return;
+  const { error } = await sb.from('user_profiles').delete().eq('id', userId);
+  if (error) { showToast('Error al eliminar usuario.'); return; }
+  showToast('Usuario eliminado.');
+  loadUsers();
 }
 
 function registrarPerfilEquipo(userId, userName) {
@@ -102,34 +111,37 @@ function registrarPerfilEquipo(userId, userName) {
 }
 
 function openCreateUser() {
-  document.getElementById('modalUserTitle').textContent   = 'Nuevo Usuario';
-  document.getElementById('modalUserId').value            = '';
-  document.getElementById('modalUserName').value          = '';
-  document.getElementById('modalUserEmail').value         = '';
-  document.getElementById('modalUserEmail').disabled      = false;
-  document.getElementById('modalUserPassword').value      = '';
-  document.getElementById('modalUserPassword').value = 'Pascua!2026';  document.getElementById('modalUserError').textContent   = '';
-  document.getElementById('passwordGroup').style.display  = 'block';
+  const get = id => document.getElementById(id);
+  if (!get('modalUserTitle')) { showToast('Error: recarga la página.'); return; }
 
-  // Grupo: si es superadmin puede elegir, si no se fija al suyo
-  const groupSelect = document.getElementById('modalUserGroup');
-  if (currentUser.role === 'superadmin') {
-    groupSelect.disabled = false;
-    groupSelect.value    = '';
-  } else {
-    groupSelect.disabled = true;
-    groupSelect.value    = currentUser.group_id;
+  get('modalUserTitle').textContent  = 'Nuevo Usuario';
+  get('modalUserId').value           = '';
+  get('modalUserName').value         = '';
+  get('modalUserEmail').value        = '';
+  get('modalUserEmail').disabled     = false;
+  get('modalUserPassword').value     = 'Pascua!2026';
+  get('modalUserError').textContent  = '';
+  get('passwordGroup').style.display = 'block';
+
+  const groupSelect = get('modalUserGroup');
+  if (groupSelect) {
+    if (currentUser.role === 'superadmin') {
+      groupSelect.disabled = false;
+      groupSelect.value    = '';
+    } else {
+      groupSelect.disabled = true;
+      groupSelect.value    = currentUser.group_id || '';
+    }
   }
 
-  // Roles disponibles según quien crea
   updateRoleOptions();
+  get('modalUserRole').value = 'registrador';
   openModal('modalUser');
 }
 
 function updateRoleOptions() {
-  const roleSelect = document.getElementById('modalUserRole');
+  const roleSelect   = document.getElementById('modalUserRole');
   const isSuperadmin = currentUser.role === 'superadmin';
-
   roleSelect.innerHTML = `
     <option value="registrador">Registrador</option>
     <option value="secretario">Secretario</option>
@@ -154,7 +166,7 @@ async function openEditUser(userId) {
   document.getElementById('passwordGroup').style.display  = 'none';
 
   updateRoleOptions();
-  document.getElementById('modalUserRole').value  = u.role;
+  document.getElementById('modalUserRole').value = u.role;
 
   const groupSelect = document.getElementById('modalUserGroup');
   groupSelect.value    = u.group_id || '';
@@ -162,6 +174,7 @@ async function openEditUser(userId) {
 
   openModal('modalUser');
 }
+
 async function saveUser() {
   const id       = document.getElementById('modalUserId').value;
   const name     = document.getElementById('modalUserName').value.trim();
@@ -178,18 +191,17 @@ async function saveUser() {
   }
 
   if (!id) {
-    // Crear nuevo usuario
     if (!email || !password) { errEl.textContent = 'Correo y contraseña son obligatorios.'; return; }
     if (password.length < 8) { errEl.textContent = 'Mínimo 8 caracteres.'; return; }
 
     const btn = document.querySelector('#modalUser .btn-action');
     if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
 
-    // 1. Guardar sesión actual antes de que signUp la cambie
     const { data: { session: currentSession } } = await sb.auth.getSession();
-
-    // 2. Crear el usuario en Auth
     const { data, error } = await sb.auth.signUp({ email, password });
+
+    console.log('signUp data:', data);
+    console.log('signUp error:', error);
 
     if (error) {
       errEl.textContent = error.message;
@@ -197,24 +209,20 @@ async function saveUser() {
       return;
     }
 
-    // 3. Insertar perfil directamente con el ID del nuevo usuario
-    const { error: profileError } = await sb.from('user_profiles').insert({
-      id:        data.user.id,
-      full_name: name,
-      email,
-      role,
-      is_active: true,
-      group_id:  groupId,
+    const { error: insertError } = await sb.from('user_profiles').insert({
+      id: data.user.id, full_name: name, email,
+      role, is_active: true, group_id: groupId
     });
 
-    if (profileError) {
-      // Si ya existe, actualizar
-      await sb.from('user_profiles').update({
+    console.log('insertError:', insertError);
+
+    if (insertError) {
+      const { error: updateError } = await sb.from('user_profiles').update({
         full_name: name, role, is_active: true, group_id: groupId
       }).eq('id', data.user.id);
+      console.log('updateError:', updateError);
     }
 
-    // 4. Restaurar sesión del admin actual
     if (currentSession) {
       await sb.auth.setSession({
         access_token:  currentSession.access_token,
@@ -225,10 +233,13 @@ async function saveUser() {
     if (btn) { btn.disabled = false; btn.textContent = 'Guardar'; }
     closeModal('modalUser');
     showToast(`Usuario ${name} creado correctamente.`);
+
+    const groupName = groupId ? (GROUP_NAMES[groupId] || groupId) : 'Sistema General';
+    enviarCorreoBienvenida(name, email, password, groupName, role);
+
     loadUsers();
 
   } else {
-    // Editar usuario existente
     const updates = { full_name: name, role };
     if (currentUser.role === 'superadmin') updates.group_id = groupId;
 

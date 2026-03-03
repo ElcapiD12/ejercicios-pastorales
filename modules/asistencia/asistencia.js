@@ -28,7 +28,7 @@ async function initAsistCamera() {
 
     // Iniciar cámara
     asistStream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 640, height: 480, facingMode: 'user' },
+      video: { width: 640, height: 480, facingMode: /Android|iPhone|iPad/i.test(navigator.userAgent) ? { ideal: 'environment' } : 'user' },
       audio: false,
     });
 
@@ -229,7 +229,6 @@ async function loadTodayAttendance() {
     .select('*, members!inner(full_name, member_id, group_id)')
     .eq('date', today)
     .order('checked_in_at', { ascending: false });
-  if (currentUser?.group_id) attQuery = attQuery.eq('members.group_id', currentUser.group_id);
   const { data, error } = await attQuery;
 
   if (error || !data) {
@@ -315,6 +314,20 @@ async function registrarManual(memberId, fullName) {
   loadTodayAttendance();
 }
 
+// ─── Cambiar panel
+function showAsistPanel(panelId) {
+  ['panel-scanner', 'panel-manual'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', id === panelId);
+  });
+
+  if (panelId === 'panel-scanner') {
+    initAsistCamera();
+  } else {
+    stopAsistCamera();
+    document.getElementById('asistBusquedaResultados').innerHTML = '';
+  }
+}
 
 // ─── Helpers
 function setAsistStatus(msg, type) {

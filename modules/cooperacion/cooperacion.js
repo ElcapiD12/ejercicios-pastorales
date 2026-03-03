@@ -172,6 +172,14 @@ async function saveCoopEdit() {
 
   closeModal('modalCoopEdit');
   showToast('Cooperación actualizada.');
+
+  // Enviar WhatsApp al miembro
+  const { data: memData } = await sb.from('members').select('phone, full_name').eq('member_id', memberId).single();
+  if (memData?.phone) {
+    const groupName = currentGroup?.name || 'Ejercicios Pastorales';
+    enviarWhatsApp(memberId, memData.full_name, memData.phone, monto, anticipo, liquidado, groupName);
+  }
+
   await loadCooperaciones();
   renderCooperaciones(document.querySelector('.coop-filter-btn.active')?.dataset.filter || 'todos');
   renderResumen();

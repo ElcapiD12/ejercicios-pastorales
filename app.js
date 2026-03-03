@@ -13,6 +13,9 @@ let currentUser  = null;
 let currentGroup = null; // { id, name }
 let currentView  = 'welcome';
 
+// --- CONSTANTE PARA ENVIAR CORREO ELECTRÓNICO
+window.RESEND_API_KEY = 're_6mG3Rz1h_HXxbycVarNCc7AgSSUTbSkEE';
+
 // ─── GRUPOS
 const GROUPS = {
   kairos:    { id: 'kairos',    name: 'Jóvenes Kairós' },
@@ -103,6 +106,8 @@ async function handleLogin() {
 
 // ─── BOOT APP
 async function bootApp() {
+   // Esperar un momento para que saveUser termine si está corriendo
+  await new Promise(resolve => setTimeout(resolve, 500));
 
   const { data, error: userError } = await sb.auth.getUser();
 
@@ -132,13 +137,8 @@ async function bootApp() {
     const role = (count === 0) ? 'superadmin' : 'registrador';
 
     await sb.from('user_profiles').insert({
-      id: user.id,
-      full_name: user.email,
-      email: user.email,
-      role,
-      is_active: true,
-      group_id: null
-    });
+  id: user.id, full_name: user.email, email: user.email, role: role, is_active: true
+});
 
     return bootApp();
   }
