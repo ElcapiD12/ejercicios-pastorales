@@ -271,39 +271,77 @@ function startDetectionLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (detection) {
-  consecutive++;
-  const box        = detection.detection.box;
-  const stabilized = consecutive >= 3;
+      const box = detection.detection.box;
 
-  ctx.strokeStyle = stabilized ? '#C9A84C' : 'rgba(201,168,76,0.5)';
-  ctx.lineWidth   = 2;
-  ctx.strokeRect(box.x, box.y, box.width, box.height);
+      // ─── Verificar tamaño mínimo (50% del ancho del canvas)
+      const faceRatio = box.width / canvas.width;
+      const tooFar    = faceRatio < 0.50;
 
-  ctx.fillStyle = stabilized ? 'rgba(201,168,76,0.8)' : 'rgba(201,168,76,0.3)';
-  detection.landmarks.positions.forEach(pt => {
-    ctx.beginPath(); ctx.arc(pt.x, pt.y, 1.5, 0, Math.PI * 2); ctx.fill();
-  });
+      if (tooFar) {
+        consecutive = 0;
+        regFaceDetected = false;
+        ctx.strokeStyle = 'rgba(255,100,100,0.8)';
+        ctx.lineWidth   = 2;
+        ctx.strokeRect(box.x, box.y, box.width, box.height);
+        setRegistroStatus('⚠ Acércate más a la cámara', 'error');
+        btn.disabled = true;
+        btn.classList.remove('ready');
+        detectionLoop = requestAnimationFrame(detect);
+        return;
+      }
 
-  if (stabilized) {
-    regFaceDetected = true;
-    if (!regDescriptor) regDescriptor = detection.descriptor; // solo guarda una vez
-    setRegistroStatus('✓ Rostro detectado — presiona Capturar', 'success');
-    btn.disabled = false;
-    btn.classList.add('ready');
-  }
-} else {
-  consecutive = 0;
-  // NO resetear regDescriptor ni regFaceDetected aquí
-  if (!regDescriptor) {
-    setRegistroStatus('Coloca tu rostro en el encuadre', 'info');
-    btn.disabled = true;
-    btn.classList.remove('ready');
-  }
-}
+      consecutive++;
+      const stabilized = consecutive >= 3;
+
+      ctx.strokeStyle = stabilized ? '#C9A84C' : 'rgba(201,168,76,0.5)';
+      ctx.lineWidth   = 2;
+      ctx.strokeRect(box.x, box.y, box.width, box.height);
+
+      ctx.fillStyle = stabilized ? 'rgba(201,168,76,0.8)' : 'rgba(201,168,76,0.3)';
+      detection.landmarks.positions.forEach(pt => {
+        ctx.beginPath(); ctx.arc(pt.x, pt.y, 1.5, 0, Math.PI * 2); ctx.fill();
+      });
+
+      if (stabilized) {
+        regFaceDetected = true;
+        if (!regDescriptor) regDescriptor = detection.descriptor;
+        setRegistroStatus('✓ Rostro detectado — presiona Capturar', 'success');
+        btn.disabled = false;
+        btn.classList.add('ready');
+      }
+    } else {
+      consecutive = 0;
+      if (!regDescriptor) {
+        setRegistroStatus('Coloca tu rostro en el encuadre', 'info');
+        btn.disabled = true;
+        btn.classList.remove('ready');
+      }
+    }
 
     detectionLoop = requestAnimationFrame(detect);
   }
   detect();
+}
+
+// ─── Linterna
+let torchEnabled = false;
+async function toggleLinterna() {
+  try {
+    const track = regStream?.getVideoTracks()[0];
+    if (!track) { showToast('No hay cámara activa.'); return; }
+
+    torchEnabled = !torchEnabled;
+    await track.applyConstraints({ advanced: [{ torch: torchEnabled }] });
+
+    const btn = document.getElementById('btnLinterna');
+    if (btn) {
+      btn.textContent = torchEnabled ? '🔦 Apagar linterna' : '🔦 Linterna';
+      btn.style.background = torchEnabled ? 'rgba(201,168,76,0.3)' : '';
+    }
+  } catch (err) {
+    showToast('Linterna no disponible en este dispositivo.');
+    torchEnabled = false;
+  }
 }
 
 function capturarRostro() {
