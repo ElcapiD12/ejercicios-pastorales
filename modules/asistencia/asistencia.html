@@ -5,20 +5,14 @@
 
 <!-- Tabs -->
 <div class="asist-mode-tabs">
-  <button class="asist-mode-tab active" onclick="showAsistPanel('panel-scanner')">
-    📷 Reconocimiento Facial
-  </button>
-  <button class="asist-mode-tab" onclick="showAsistPanel('panel-manual')">
-    🔍 Búsqueda Manual
-  </button>
-  <button class="asist-mode-tab" onclick="showAsistPanel('panel-stats')">
-    📊 Estadísticas
-  </button>
+  <button class="asist-mode-tab active" onclick="showAsistPanel('panel-scanner')">📷 Reconocimiento Facial</button>
+  <button class="asist-mode-tab" onclick="showAsistPanel('panel-manual')">🔍 Búsqueda Manual</button>
+  <button class="asist-mode-tab" onclick="showAsistPanel('panel-stats')">📊 Estadísticas</button>
 </div>
 
 <div class="asist-layout">
 
-  <!-- IZQUIERDA -->
+  <!-- ── IZQUIERDA ── -->
   <div class="asist-left">
 
     <!-- SCANNER -->
@@ -28,16 +22,33 @@
           <video id="asistVideo" autoplay muted playsinline></video>
           <canvas id="asistCanvas"></canvas>
 
+          <!-- Panel de confirmación -->
+          <div class="confirm-panel" id="confirmPanel">
+            <div class="confirm-content">
+              <div class="confirm-icon">👤</div>
+              <div class="confirm-nombre" id="confirmNombre">—</div>
+              <div class="confirm-confianza" id="confirmConfianza">—</div>
+              <div class="confirm-pregunta">¿Es esta persona?</div>
+              <div class="confirm-btns">
+                <button class="btn-danger" onclick="cancelarConfirmacion()">✗ No es él</button>
+                <button class="btn-action" onclick="confirmarAsistencia()">✓ Confirmar</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resultado del reconocimiento -->
           <div class="asist-result-overlay" id="asistResultOverlay">
             <div class="asist-result-icon" id="asistResultIcon">✓</div>
             <div class="asist-result-name" id="asistResultName">—</div>
-            <div class="asist-result-msg" id="asistResultMsg">—</div>
+            <div class="asist-result-msg"  id="asistResultMsg">—</div>
           </div>
         </div>
 
-        <div id="asistStatus" class="asist-status info">
-          Iniciando cámara...
-        </div>
+        <div id="asistStatus" class="asist-status info">Iniciando...</div>
+        <button class="btn-secondary" id="btnLinternaAsist" onclick="toggleLinternaAsist()"
+          style="margin-top:0.5rem;width:100%;">
+          🔦 Linterna
+        </button>
       </div>
     </div>
 
@@ -47,22 +58,14 @@
         <p class="asist-search-hint">
           Usa esta opción si el reconocimiento facial no funciona correctamente.
         </p>
-
-        <div class="asist-search-row">
-          <div class="form-group" style="flex:1;margin:0;">
-            <label>Buscar por nombre</label>
-            <input type="text" id="asistBusqueda"
-                   placeholder="Escribe el nombre..."
-                   onkeyup="if(event.key==='Enter') buscarMiembroManual()" />
-          </div>
-          <button class="btn-primary"
-                  onclick="buscarMiembroManual()">
-            Buscar
-          </button>
+        <div class="form-group" style="margin-bottom:0.8rem;">
+          <label>Buscar por nombre</label>
+          <input type="text" id="asistBusqueda"
+                 placeholder="Escribe el nombre..."
+                 oninput="buscarMiembroManual()"
+                 onkeyup="if(event.key==='Enter') buscarMiembroManual()" />
         </div>
-
-        <div id="asistBusquedaResultados"
-             class="asist-search-results"></div>
+        <div id="asistBusquedaResultados" class="asist-search-results"></div>
       </div>
     </div>
 
@@ -70,14 +73,10 @@
     <div class="asist-panel" id="panel-stats">
       <div class="asist-stats-wrap">
         <div class="asist-stats-header">
-          <span class="asist-stats-title"
-                id="asistEjercicioNombre">—</span>
-          <span class="asist-stats-count"
-                id="asistStatsCount"></span>
+          <span class="asist-stats-title" id="asistEjercicioNombre">—</span>
+          <span class="asist-stats-count" id="asistStatsCount"></span>
         </div>
-
-        <div id="asistStatslist"
-             class="asist-stats-list">
+        <div id="asistStatslist" class="asist-stats-list">
           <div class="asist-empty">Cargando...</div>
         </div>
       </div>
@@ -85,24 +84,39 @@
 
   </div>
 
-  <!-- DERECHA -->
+  <!-- ── DERECHA: Lista del día ── -->
   <div class="asist-right">
     <div class="asist-today-card">
       <div class="asist-today-header">
-        <span class="asist-today-title">
-          Asistencia Hoy
-        </span>
-        <span class="asist-today-count"
-              id="asistTodayCount">0</span>
+        <span class="asist-today-title">Asistencia Hoy</span>
+        <span class="asist-today-count" id="asistTodayCount">0</span>
       </div>
-
-      <ul class="asist-today-list"
-          id="asistTodayList">
-        <li class="asist-empty">
-          Sin registros aún
-        </li>
+      <ul class="asist-today-list" id="asistTodayList">
+        <li class="asist-empty">Sin registros aún</li>
       </ul>
     </div>
   </div>
 
 </div>
+
+<!-- MODAL_START -->
+<div class="modal-overlay" id="modalHistorial">
+  <div class="modal" style="max-width:500px;">
+    <h3 id="historialNombre">Historial</h3>
+    <div id="historialResumen"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Fecha</th></tr>
+        </thead>
+        <tbody id="historialTable">
+          <tr><td colspan="2" class="empty-state">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalHistorial')">Cerrar</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL_END -->

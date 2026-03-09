@@ -294,3 +294,27 @@
 .asist-stat-bar { flex:1; height:5px; background:rgba(201,168,76,0.15); border-radius:3px; overflow:hidden; }
 .asist-stat-fill { height:100%; border-radius:3px; transition:width 0.4s ease; }
 .asist-stat-pct { font-family:'Cinzel',serif; font-size:0.72rem; font-weight:700; width:36px; text-align:right; }
+
+/* Busqueda manual */
+.asist-search-item { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 1rem; border-bottom:1px solid rgba(201,168,76,0.1); cursor:pointer; transition:background 0.15s; }
+.asist-search-item:hover:not(.ya-asistio) { background:rgba(201,168,76,0.08); }
+.asist-search-item.ya-asistio { opacity:0.5; cursor:default; }
+.asist-search-item-info { display:flex; flex-direction:column; gap:0.2rem; }
+.asist-search-name { font-size:0.95rem; color:var(--brown); }
+.asist-search-id { font-family:'Cinzel',serif; font-size:0.65rem; color:var(--gold-dark); }
+.asist-search-status { font-size:0.8rem; white-space:nowrap; }
+.asist-search-status.ya { color:#1a7a44; font-weight:bold; }
+.asist-search-status.pendiente { color:var(--gold-dark); }
+.asist-no-results { padding:1rem; text-align:center; color:var(--brown-light); font-style:italic; }
+
+/* Panel de confirmación */
+.confirm-panel { display:none; position:absolute; bottom:0; left:0; right:0; background:rgba(61,43,31,0.96); padding:1rem; z-index:10; }
+.confirm-panel.visible { display:block; }
+.confirm-content { text-align:center; }
+.confirm-icon { font-size:2rem; margin-bottom:0.3rem; }
+.confirm-nombre { font-family:'Cinzel',serif; font-size:1.1rem; color:var(--gold-light); font-weight:bold; margin-bottom:0.2rem; }
+.confirm-confianza { font-size:0.85rem; font-weight:bold; margin-bottom:0.3rem; }
+.confirm-pregunta { font-size:0.82rem; color:rgba(201,168,76,0.7); margin-bottom:0.8rem; }
+.confirm-btns { display:flex; gap:0.6rem; justify-content:center; }
+.confirm-btns .btn-danger { flex:1; }
+.confirm-btns .btn-action { flex:1; }
