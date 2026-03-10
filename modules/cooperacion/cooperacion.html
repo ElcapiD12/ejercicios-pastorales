@@ -58,7 +58,7 @@
   </div>
 </div>
 
-<!-- Tabla -->
+<!-- Tabla cooperaciones -->
 <div class="table-wrap">
   <table>
     <thead>
@@ -69,13 +69,62 @@
         <th>Anticipo</th>
         <th>Pendiente</th>
         <th>Estado</th>
+        <th>Playera</th>
         <th>Acciones</th>
       </tr>
     </thead>
     <tbody id="coopTable">
-      <tr><td colspan="7" class="empty-state">Cargando...</td></tr>
+      <tr><td colspan="8" class="empty-state">Cargando...</td></tr>
     </tbody>
   </table>
+</div>
+
+<!-- ══ SECCIÓN PLAYERAS ══ -->
+<div style="margin-top:2.5rem;">
+  <div class="section-header" style="margin-top:1rem;">
+    <h2>Reporte de Playeras</h2>
+    <p>Estado de entrega por talla</p>
+  </div>
+
+  <div class="toolbar">
+    <div class="playera-tallas-wrap" id="playeraTallasResumen"></div>
+    <button class="btn-action" onclick="openModal('modalMontoPlayera')">
+      Precio Playera: <span id="playeraMontoDisplay">—</span>
+    </button>
+  </div>
+
+  <!-- Buscador y filtro de playeras -->
+  <div style="display:flex;gap:0.8rem;margin-top:1rem;flex-wrap:wrap;">
+    <div class="form-group" style="margin:0;flex:1;min-width:180px;">
+      <input type="text" id="playeraSearch" placeholder="Buscar por nombre..."
+             oninput="playeraSearch()" style="padding:0.5rem 0.8rem;" />
+    </div>
+    <select id="playeraFiltro" class="select-field" onchange="playeraFiltrar()"
+            style="min-width:170px;padding:0.5rem 0.8rem;">
+      <option value="todos">Todas</option>
+      <option value="entregadas">👕 Entregadas</option>
+      <option value="por_entregar">📦 Por entregar</option>
+      <option value="sin_liquidar">🔒 Sin liquidar</option>
+    </select>
+  </div>
+
+  <div class="table-wrap" style="margin-top:1rem;">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>ID</th>
+          <th>Talla</th>
+          <th>Tipo</th>
+          <th>Estado</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody id="playeraTableBody">
+        <tr><td colspan="6" class="empty-state">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <!-- MODAL_START -->
@@ -115,6 +164,10 @@
       </label>
     </div>
 
+    <!-- Info de playera -->
+    <div id="coopEditPlayeraInfo"
+         style="display:none;margin:0.6rem 0;padding:0.5rem 0.8rem;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);font-size:0.85rem;"></div>
+
     <div class="error-msg" id="coopEditError"></div>
 
     <div class="modal-actions">
@@ -143,42 +196,7 @@
   </div>
 </div>
 
-<!-- MODAL_END -->
-
-<!-- ══ SECCIÓN PLAYERAS ══ -->
-<div style="margin-top:2.5rem;">
-  <div class="section-header" style="margin-top:1rem;">
-    <h2>Reporte de Playeras</h2>
-    <p>Estado de pago por talla</p>
-  </div>
-
-  <div class="toolbar">
-    <div class="playera-tallas-wrap" id="playeraTallasResumen"></div>
-    <button class="btn-action" onclick="openModal('modalMontoPlayera')">
-      Precio Playera: <span id="playeraMontoDisplay">—</span>
-    </button>
-  </div>
-
-  <div class="table-wrap" style="margin-top:1rem;">
-    <table>
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>ID</th>
-          <th>Talla</th>
-          <th>Tipo</th>
-          <th>Estado Pago</th>
-        </tr>
-      </thead>
-      <tbody id="playeraTableBody">
-        <tr><td colspan="5" class="empty-state">Cargando...</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- MODAL: Monto playera -->
-<!-- MODAL_START -->
+<!-- Modal: Precio playera -->
 <div class="modal-overlay" id="modalMontoPlayera">
   <div class="modal" style="max-width:380px;">
     <h3>Precio de Playera</h3>
@@ -196,4 +214,5 @@
     </div>
   </div>
 </div>
+
 <!-- MODAL_END -->
