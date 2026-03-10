@@ -386,6 +386,7 @@ async function guardarMiembro() {
   const address    = document.getElementById('regDomicilio').value.trim();
   const memberType = document.getElementById('regTipoMiembro').value;
 
+  if (!currentUser?.group_id) { errEl.textContent = 'Error: tu usuario no tiene grupo asignado. Contacta al administrador.'; return; }
   if (!fullName)    { errEl.textContent = 'El nombre es obligatorio.'; return; }
   if (!phone)       { errEl.textContent = 'El teléfono es obligatorio.'; return; }
   if (!birthDate)   { errEl.textContent = 'La fecha de nacimiento es obligatoria.'; return; }
@@ -409,7 +410,7 @@ async function guardarMiembro() {
       address,
       face_descriptor: descriptorArray,
       member_type:     memberType,
-      group_id:        currentUser?.group_id || null,
+      group_id:        currentUser?.group_id,
     });
 
     if (error) throw error;

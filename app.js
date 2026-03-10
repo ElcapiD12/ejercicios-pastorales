@@ -319,6 +319,7 @@ function showToast(message) {
 
 // ─── HELPER: filtro de grupo para queries
 // Retorna el group_id del usuario actual o null si es superadmin
+// ─── HELPER: obtener group_id del usuario actual
 function getGroupFilter() {
   return currentUser?.group_id || null;
 }
@@ -329,3 +330,9 @@ function applyGroupFilter(query, column = 'group_id') {
   if (groupId) return query.eq(column, groupId);
   return query; // superadmin ve todo
 }
+
+// ─── HELPER: formatear dinero
+function formatMoney(amount) {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount || 0);
+}
+// ─── HELPER: aplicar filtro de grupo a query de supabase

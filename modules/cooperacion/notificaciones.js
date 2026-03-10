@@ -20,7 +20,6 @@ async function enviarCorreoBienvenida(nombre, email, password, groupName, role) 
     administrador: 'Administrador', secretario: 'Secretario',
     contador: 'Contador', registrador: 'Registrador', equipo: 'Equipo Base',
   };
-
   try {
     await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
       to_name:    nombre,
@@ -38,26 +37,40 @@ async function enviarCorreoBienvenida(nombre, email, password, groupName, role) 
 }
 
 // ─── Enviar comprobante por WhatsApp
-function enviarWhatsApp(memberId, fullName, phone, monto, anticipo, liquidado, groupName) {
+function enviarWhatsApp({ memberId, fullName, phone, monto, anticipo, liquidado, groupName, concepto, ejercicioNombre }) {
   if (!phone) {
     showToast('El miembro no tiene teléfono registrado.');
     return;
   }
 
-  const pendiente = liquidado ? 0 : monto - anticipo;
+  const pendiente  = liquidado ? 0 : monto - anticipo;
+  const fecha      = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+  const conceptoTxt = concepto === 'playera' ? '👕 Playera' : '🤝 Cooperación';
 
-  let mensaje = `Hola ${fullName} 👋\n\n`;
-  mensaje    += `Tu pago ha sido registrado en *Ejercicios Pastorales*.\n\n`;
+  let mensaje = `✝️ *Ejercicios Pastorales*\n`;
+  mensaje    += `━━━━━━━━━━━━━━━━━━━━\n`;
+  mensaje    += `*COMPROBANTE DE PAGO*\n`;
+  mensaje    += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+  mensaje    += `Hola *${fullName}* 👋\n\n`;
   mensaje    += `📋 *Grupo:* ${groupName}\n`;
+  mensaje    += `🎯 *Ejercicio:* ${ejercicioNombre || 'Ejercicio activo'}\n`;
+  mensaje    += `🪪 *ID:* ${memberId}\n`;
+  mensaje    += `📦 *Concepto:* ${conceptoTxt}\n`;
+  mensaje    += `📅 *Fecha:* ${fecha}\n\n`;
+  mensaje    += `━━━━━━━━━━━━━━━━━━━━\n`;
   mensaje    += `💰 *Monto total:* ${formatMoney(monto)}\n`;
 
   if (liquidado) {
     mensaje += `✅ *Estado:* ¡Pago completado!\n`;
-    mensaje += `\n¡Muchas gracias por tu aportación! 🙏`;
+    mensaje += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+    mensaje += `¡Muchas gracias por tu aportación! 🙏\n`;
+    mensaje += `_Tu pago ha sido registrado correctamente._`;
   } else {
     mensaje += `💵 *Abonado:* ${formatMoney(anticipo)}\n`;
     mensaje += `⏳ *Saldo pendiente:* ${formatMoney(pendiente)}\n`;
-    mensaje += `\n¡Gracias por tu abono! Recuerda liquidar tu saldo. 🙏`;
+    mensaje += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+    mensaje += `¡Gracias por tu abono! 🙏\n`;
+    mensaje += `_Recuerda liquidar tu saldo pendiente._`;
   }
 
   const telLimpio   = phone.replace(/\D/g, '');
