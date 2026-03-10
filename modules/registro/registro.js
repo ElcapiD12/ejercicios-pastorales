@@ -8,7 +8,8 @@ let regFaceDetected  = false;
 let faceApiLoaded    = false;
 let detectionLoop    = null;
 let regMemberType    = 'participante';
-let regLinkedUserId  = null;  // Para vincular con user_profiles
+let regLinkedUserId  = null;
+let torchEnabled     = false;
 
 // ─── Inicializar vista
 async function initRegistro() {
@@ -33,7 +34,7 @@ function showRegistroTab(tabId) {
   }
 }
 
-// ─── Iniciar nuevo registro desde usuarios (equipo base)
+// ─── Iniciar registro desde usuarios (equipo base)
 function iniciarRegistroEquipo(userId, userName) {
   regLinkedUserId = userId;
   regMemberType   = 'equipo';
@@ -53,6 +54,7 @@ async function loadMembersList(search = '') {
   tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Cargando...</td></tr>`;
 
   let query = sb.from('members').select('*').order('full_name');
+  query = applyGroupFilter(query);
   if (search) query = query.ilike('full_name', `%${search}%`);
 
   const { data, error } = await query;
@@ -71,15 +73,11 @@ async function loadMembersList(search = '') {
       ? '<span class="role-tag" style="color:#8B6914;">Equipo</span>'
       : '<span style="color:var(--brown-light);font-size:0.85rem;font-style:italic;">Participante</span>';
 
-    const birth = m.birth_date
-      ? new Date(m.birth_date + 'T12:00:00').toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric' })
-      : '—';
-
     return `
       <tr>
         <td>
           <div style="display:flex;align-items:center;gap:0.6rem;">
-            <div class="member-avatar" style="background:var(--brown);color:var(--gold-light);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:0.7rem;flex-shrink:0;">
+            <div style="background:var(--brown);color:var(--gold-light);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:0.7rem;flex-shrink:0;">
               ${m.full_name.charAt(0).toUpperCase()}
             </div>
             <span>${m.full_name}</span>
@@ -125,15 +123,15 @@ async function openEditMember(memberId) {
 
 // ─── Guardar edición de miembro
 async function saveEditMember() {
-  const id       = document.getElementById('editMemberId').value;
-  const nombre   = document.getElementById('editMemberNombre').value.trim();
-  const telefono = document.getElementById('editMemberTelefono').value.trim();
-  const emerg    = document.getElementById('editMemberEmerg').value.trim();
-  const fecha    = document.getElementById('editMemberFecha').value;
-  const talla    = document.getElementById('editMemberTalla').value;
-  const domicilio= document.getElementById('editMemberDomicilio').value.trim();
-  const tipo     = document.getElementById('editMemberTipo').value;
-  const errEl    = document.getElementById('editMemberError');
+  const id        = document.getElementById('editMemberId').value;
+  const nombre    = document.getElementById('editMemberNombre').value.trim();
+  const telefono  = document.getElementById('editMemberTelefono').value.trim();
+  const emerg     = document.getElementById('editMemberEmerg').value.trim();
+  const fecha     = document.getElementById('editMemberFecha').value;
+  const talla     = document.getElementById('editMemberTalla').value;
+  const domicilio = document.getElementById('editMemberDomicilio').value.trim();
+  const tipo      = document.getElementById('editMemberTipo').value;
+  const errEl     = document.getElementById('editMemberError');
 
   errEl.textContent = '';
   if (!nombre) { errEl.textContent = 'El nombre es obligatorio.'; return; }
@@ -172,14 +170,12 @@ async function executeDeleteMember() {
 
   errEl.textContent = '';
 
-  // Borrar en cascada: cooperaciones, asistencia, luego miembro
   await sb.from('cooperaciones').delete().eq('member_id', memberCode);
   await sb.from('attendance').delete().eq('member_id', memberCode);
 
   const { error } = await sb.from('members').delete().eq('id', id);
   if (error) { errEl.textContent = 'Error al eliminar.'; return; }
 
-  // Desvincular de user_profiles si aplica
   await sb.from('user_profiles').update({ member_id: null }).eq('member_id', memberCode);
 
   closeModal('modalDeleteMember');
@@ -187,7 +183,9 @@ async function executeDeleteMember() {
   loadMembersList();
 }
 
-// ─── FLUJO DE REGISTRO NUEVO ────────────────
+// ═══════════════════════════════════════════
+//  FLUJO DE REGISTRO NUEVO
+// ═══════════════════════════════════════════
 
 async function loadFaceApiAndCamera() {
   if (!faceApiLoaded) {
@@ -255,6 +253,7 @@ async function startCamera() {
     setRegistroStatus('No se pudo acceder a la cámara.', 'error');
   }
 }
+
 function startDetectionLoop() {
   const video  = document.getElementById('regVideo');
   const canvas = document.getElementById('regCanvas');
@@ -264,7 +263,7 @@ function startDetectionLoop() {
 
   async function detect() {
     const detection = await faceapi
-      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5 }))
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5, inputSize: 224 }))
       .withFaceLandmarks(true)
       .withFaceDescriptor();
 
@@ -273,11 +272,8 @@ function startDetectionLoop() {
     if (detection) {
       const box = detection.detection.box;
 
-      // ─── Verificar tamaño mínimo (50% del ancho del canvas)
       const faceRatio = box.width / canvas.width;
-      const tooFar    = faceRatio < 0.50;
-
-      if (tooFar) {
+      if (faceRatio < 0.50) {
         consecutive = 0;
         regFaceDetected = false;
         ctx.strokeStyle = 'rgba(255,100,100,0.8)';
@@ -286,7 +282,7 @@ function startDetectionLoop() {
         setRegistroStatus('⚠ Acércate más a la cámara', 'error');
         btn.disabled = true;
         btn.classList.remove('ready');
-        detectionLoop = requestAnimationFrame(detect);
+        detectionLoop = setTimeout(detect, 200);
         return;
       }
 
@@ -318,13 +314,12 @@ function startDetectionLoop() {
       }
     }
 
-    detectionLoop = requestAnimationFrame(detect);
+    detectionLoop = setTimeout(detect, 200);
   }
   detect();
 }
 
 // ─── Linterna
-let torchEnabled = false;
 async function toggleLinterna() {
   try {
     const track = regStream?.getVideoTracks()[0];
@@ -335,7 +330,7 @@ async function toggleLinterna() {
 
     const btn = document.getElementById('btnLinterna');
     if (btn) {
-      btn.textContent = torchEnabled ? '🔦 Apagar linterna' : '🔦 Linterna';
+      btn.textContent      = torchEnabled ? '🔦 Apagar linterna' : '🔦 Linterna';
       btn.style.background = torchEnabled ? 'rgba(201,168,76,0.3)' : '';
     }
   } catch (err) {
@@ -345,18 +340,24 @@ async function toggleLinterna() {
 }
 
 function capturarRostro() {
-  if (!regFaceDetected || !regDescriptor) return;
+  if (!regFaceDetected || !regDescriptor) {
+    showToast('Espera a que el rostro sea detectado correctamente.');
+    return;
+  }
 
-  cancelAnimationFrame(detectionLoop);
-  stopCamera();
-
+  // 1. Tomar foto antes de detener cámara
   const video = document.getElementById('regVideo');
   const snap  = document.createElement('canvas');
   snap.width  = video.videoWidth;
   snap.height = video.videoHeight;
   snap.getContext('2d').drawImage(video, 0, 0);
-
   const photoDataUrl = snap.toDataURL('image/jpeg', 0.8);
+
+  // 2. Detener cámara
+  cancelAnimationFrame(detectionLoop);
+  stopCamera();
+
+  // 3. Mostrar foto
   document.getElementById('regPhotoPreview').src = photoDataUrl;
   document.getElementById('regPhotoData').value  = photoDataUrl;
 
@@ -365,7 +366,7 @@ function capturarRostro() {
 
 function stopCamera() {
   if (regStream) { regStream.getTracks().forEach(t => t.stop()); regStream = null; }
-  if (detectionLoop) { cancelAnimationFrame(detectionLoop); detectionLoop = null; }
+  if (detectionLoop) { clearTimeout(detectionLoop); detectionLoop = null; }
 }
 
 function volverCamara() {
@@ -375,7 +376,7 @@ function volverCamara() {
 }
 
 async function guardarMiembro() {
-  const errEl     = document.getElementById('regFormError');
+  const errEl = document.getElementById('regFormError');
   errEl.textContent = '';
 
   const fullName   = document.getElementById('regNombre').value.trim();
@@ -386,18 +387,31 @@ async function guardarMiembro() {
   const address    = document.getElementById('regDomicilio').value.trim();
   const memberType = document.getElementById('regTipoMiembro').value;
 
-  if (!currentUser?.group_id) { errEl.textContent = 'Error: tu usuario no tiene grupo asignado. Contacta al administrador.'; return; }
-  if (!fullName)    { errEl.textContent = 'El nombre es obligatorio.'; return; }
-  if (!phone)       { errEl.textContent = 'El teléfono es obligatorio.'; return; }
-  if (!birthDate)   { errEl.textContent = 'La fecha de nacimiento es obligatoria.'; return; }
-  if (!shirtSize)   { errEl.textContent = 'Selecciona una talla.'; return; }
+  // Validar grupo — superadmin usa selector, demás usan su group_id
+  const isSuperadmin = currentUser?.role === 'superadmin';
+  const groupId = isSuperadmin
+    ? (document.getElementById('regGrupo')?.value || null)
+    : currentUser?.group_id;
+
+  if (!isSuperadmin && !groupId) {
+    errEl.textContent = 'Error: tu usuario no tiene grupo asignado. Contacta al administrador.';
+    return;
+  }
+  if (isSuperadmin && !groupId) {
+    errEl.textContent = 'Selecciona el grupo del miembro.';
+    return;
+  }
+  if (!fullName)      { errEl.textContent = 'El nombre es obligatorio.'; return; }
+  if (!phone)         { errEl.textContent = 'El teléfono es obligatorio.'; return; }
+  if (!birthDate)     { errEl.textContent = 'La fecha de nacimiento es obligatoria.'; return; }
+  if (!shirtSize)     { errEl.textContent = 'Selecciona una talla.'; return; }
   if (!regDescriptor) { errEl.textContent = 'No hay datos faciales. Vuelve a capturar.'; return; }
 
   const btn = document.getElementById('btnGuardarMiembro');
   btn.disabled = true; btn.textContent = 'Guardando...';
 
   try {
-    const memberId       = await generateMemberId();
+    const memberId        = await generateMemberId();
     const descriptorArray = Array.from(regDescriptor);
 
     const { error } = await sb.from('members').insert({
@@ -410,12 +424,11 @@ async function guardarMiembro() {
       address,
       face_descriptor: descriptorArray,
       member_type:     memberType,
-      group_id:        currentUser?.group_id,
+      group_id:        groupId,
     });
 
     if (error) throw error;
 
-    // Vincular con user_profiles si viene del equipo
     if (regLinkedUserId) {
       await sb.from('user_profiles').update({ member_id: memberId }).eq('id', regLinkedUserId);
       regLinkedUserId = null;
@@ -428,6 +441,7 @@ async function guardarMiembro() {
     showRegistroStep('step-confirm');
   } catch (err) {
     errEl.textContent = 'Error al guardar. Intenta de nuevo.';
+    console.error(err);
   } finally {
     btn.disabled = false; btn.textContent = 'Guardar Registro';
   }
@@ -445,21 +459,29 @@ async function generateMemberId() {
 
 function nuevoRegistro() {
   resetRegistroForm();
-  showRegistroStep('step-camera');
   startCamera();
 }
 
 function resetRegistroForm() {
   stopCamera();
-  regDescriptor = null; regFaceDetected = false; regMemberType = 'participante';
+  regDescriptor = null; regFaceDetected = false; regMemberType = 'participante'; torchEnabled = false;
+
   ['regNombre','regTelefono','regTelefonoEmerg','regFechaNac','regDomicilio','regFormError']
-    .forEach(id => { const el = document.getElementById(id); if (el) el.value ? el.value='' : el.textContent=''; });
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { if (el.tagName === 'INPUT') el.value = ''; else el.textContent = ''; }
+    });
+
   const talla = document.getElementById('regTalla');
   if (talla) talla.value = '';
   const tipo = document.getElementById('regTipoMiembro');
   if (tipo) tipo.value = 'participante';
+  const grupo = document.getElementById('regGrupo');
+  if (grupo) grupo.value = '';
   const btn = document.getElementById('btnCapturar');
   if (btn) { btn.disabled = true; btn.classList.remove('ready'); }
+  const btnLint = document.getElementById('btnLinterna');
+  if (btnLint) { btnLint.textContent = '🔦 Linterna'; btnLint.style.background = ''; }
 
   showRegistroStep('step-camera');
 }
@@ -468,6 +490,12 @@ function showRegistroStep(stepId) {
   ['step-camera','step-form','step-confirm'].forEach(id => {
     document.getElementById(id)?.classList.toggle('active', id === stepId);
   });
+
+  // Mostrar selector de grupo solo para superadmin en el formulario
+  if (stepId === 'step-form') {
+    const wrap = document.getElementById('regGrupoWrap');
+    if (wrap) wrap.style.display = currentUser?.role === 'superadmin' ? 'block' : 'none';
+  }
 }
 
 function setRegistroStatus(msg, type) {
