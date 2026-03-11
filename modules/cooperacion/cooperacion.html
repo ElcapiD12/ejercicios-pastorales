@@ -1,3 +1,11 @@
+<!-- Tabs de grupo (solo superadmin) -->
+<div id="coopGroupTabs" style="display:none;margin-bottom:1.2rem;">
+  <div class="asist-mode-tabs">
+    <button class="asist-mode-tab active" onclick="setCoopGroup('kairos')">✝️ Jóvenes Kairós</button>
+    <button class="asist-mode-tab" onclick="setCoopGroup('nazarenos')">✝️ Adolescentes Nazarenos</button>
+  </div>
+</div>
+
 <div class="section-header">
   <h2>Cooperaciones</h2>
   <p>Control de pagos y aportaciones</p>
@@ -83,18 +91,11 @@
 <div style="margin-top:2.5rem;">
   <div class="section-header" style="margin-top:1rem;">
     <h2>Reporte de Playeras</h2>
-    <p>Estado de entrega por talla</p>
+    <p>Estado de entrega por grupo y talla</p>
   </div>
 
-  <div class="toolbar">
-    <div class="playera-tallas-wrap" id="playeraTallasResumen"></div>
-    <button class="btn-action" onclick="openModal('modalMontoPlayera')">
-      Precio Playera: <span id="playeraMontoDisplay">—</span>
-    </button>
-  </div>
-
-  <!-- Buscador y filtro de playeras -->
-  <div style="display:flex;gap:0.8rem;margin-top:1rem;flex-wrap:wrap;">
+  <!-- Buscador y filtro -->
+  <div style="display:flex;gap:0.8rem;margin-top:0.5rem;flex-wrap:wrap;">
     <div class="form-group" style="margin:0;flex:1;min-width:180px;">
       <input type="text" id="playeraSearch" placeholder="Buscar por nombre..."
              oninput="playeraSearch()" style="padding:0.5rem 0.8rem;" />
@@ -108,23 +109,57 @@
     </select>
   </div>
 
-  <div class="table-wrap" style="margin-top:1rem;">
-    <table>
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>ID</th>
-          <th>Talla</th>
-          <th>Tipo</th>
-          <th>Estado</th>
-          <th>Acción</th>
-        </tr>
-      </thead>
-      <tbody id="playeraTableBody">
-        <tr><td colspan="6" class="empty-state">Cargando...</td></tr>
-      </tbody>
-    </table>
+  <!-- SECCIÓN ÚNICA (admin/contador/secretario) -->
+  <div id="playeraSeccionSingle">
+    <div class="playera-tallas-wrap" id="playeraTallasSingle" style="margin:1rem 0;"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Nombre</th><th>ID</th><th>Talla</th><th>Tipo</th><th>Estado</th><th>Acción</th></tr>
+        </thead>
+        <tbody id="playeraTableSingle">
+          <tr><td colspan="6" class="empty-state">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
+
+  <!-- SECCIÓN KAIRÓS (superadmin) -->
+  <div id="playeraSeccionKairos" style="display:none;margin-top:1.5rem;">
+    <div class="playera-grupo-header">
+      <span class="playera-grupo-titulo">✝️ Jóvenes Kairós</span>
+    </div>
+    <div class="playera-tallas-wrap" id="playeraTallasKairos" style="margin:0.8rem 0;"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Nombre</th><th>ID</th><th>Talla</th><th>Tipo</th><th>Estado</th><th>Acción</th></tr>
+        </thead>
+        <tbody id="playeraTableKairos">
+          <tr><td colspan="6" class="empty-state">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECCIÓN NAZARENOS (superadmin) -->
+  <div id="playeraSeccionNazarenos" style="display:none;margin-top:2rem;">
+    <div class="playera-grupo-header">
+      <span class="playera-grupo-titulo">✝️ Adolescentes Nazarenos</span>
+    </div>
+    <div class="playera-tallas-wrap" id="playeraTallasNazarenos" style="margin:0.8rem 0;"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Nombre</th><th>ID</th><th>Talla</th><th>Tipo</th><th>Estado</th><th>Acción</th></tr>
+        </thead>
+        <tbody id="playeraTableNazarenos">
+          <tr><td colspan="6" class="empty-state">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <!-- MODAL_START -->
@@ -135,12 +170,10 @@
     <h3>Editar Cooperación</h3>
     <input type="hidden" id="coopEditMemberId" />
     <input type="hidden" id="coopEditCoopId" />
-
     <div class="coop-modal-member">
       <span class="coop-modal-name" id="coopModalName">—</span>
       <span class="coop-modal-id"   id="coopModalId">—</span>
     </div>
-
     <div class="form-row two-col">
       <div class="form-group">
         <label>Monto Total</label>
@@ -151,25 +184,19 @@
         <input type="number" id="coopEditAnticipo" min="0" step="0.01" placeholder="0" />
       </div>
     </div>
-
     <div class="form-group">
       <label>Notas</label>
       <input type="text" id="coopEditNotas" placeholder="Opcional" />
     </div>
-
     <div class="coop-liquidado-row">
       <label class="coop-check-label">
         <input type="checkbox" id="coopEditLiquidado" />
         <span>Marcar como Liquidado</span>
       </label>
     </div>
-
-    <!-- Info de playera -->
     <div id="coopEditPlayeraInfo"
          style="display:none;margin:0.6rem 0;padding:0.5rem 0.8rem;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);font-size:0.85rem;"></div>
-
     <div class="error-msg" id="coopEditError"></div>
-
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('modalCoopEdit')">Cancelar</button>
       <button class="btn-action" onclick="saveCoopEdit()">Guardar</button>
@@ -192,25 +219,6 @@
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('modalMontoBase')">Cancelar</button>
       <button class="btn-action" onclick="saveMontoBase()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Precio playera -->
-<div class="modal-overlay" id="modalMontoPlayera">
-  <div class="modal" style="max-width:380px;">
-    <h3>Precio de Playera</h3>
-    <p style="font-style:italic;color:var(--brown-light);margin-bottom:1.2rem;font-size:0.95rem;">
-      Define el precio base de la playera para este grupo.
-    </p>
-    <div class="form-group">
-      <label>Nuevo Precio</label>
-      <input type="number" id="playeraNuevoMonto" min="0" step="0.01" placeholder="Ej. 200" />
-    </div>
-    <div class="error-msg" id="playeraMontoError"></div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('modalMontoPlayera')">Cancelar</button>
-      <button class="btn-action" onclick="saveMontoPlayera()">Guardar</button>
     </div>
   </div>
 </div>

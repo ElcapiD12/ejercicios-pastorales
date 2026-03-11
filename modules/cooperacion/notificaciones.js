@@ -45,31 +45,31 @@ function enviarWhatsApp({ memberId, fullName, phone, monto, anticipo, liquidado,
 
   const pendiente  = liquidado ? 0 : monto - anticipo;
   const fecha      = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
-  const conceptoTxt = concepto === 'playera' ? '👕 Playera' : '🤝 Cooperación';
+  const conceptoTxt = concepto === 'playera' ? 'Playera' : 'Cooperación';
 
-  let mensaje = `✝️ *Ejercicios Pastorales*\n`;
+  let mensaje = `*Ejercicios Pastorales*\n`;
   mensaje    += `━━━━━━━━━━━━━━━━━━━━\n`;
   mensaje    += `*COMPROBANTE DE PAGO*\n`;
   mensaje    += `━━━━━━━━━━━━━━━━━━━━\n\n`;
-  mensaje    += `Hola *${fullName}* 👋\n\n`;
-  mensaje    += `📋 *Grupo:* ${groupName}\n`;
-  mensaje    += `🎯 *Ejercicio:* ${ejercicioNombre || 'Ejercicio activo'}\n`;
-  mensaje    += `🪪 *ID:* ${memberId}\n`;
-  mensaje    += `📦 *Concepto:* ${conceptoTxt}\n`;
-  mensaje    += `📅 *Fecha:* ${fecha}\n\n`;
+  mensaje    += `Hola *${fullName}* \n\n`;
+  mensaje    += `*Grupo:* ${groupName}\n`;
+  mensaje    += `*Ejercicio:* ${ejercicioNombre || 'Ejercicio activo'}\n`;
+  mensaje    += `*ID:* ${memberId}\n`;
+  mensaje    += `*Concepto:* ${conceptoTxt}\n`;
+  mensaje    += `*Fecha:* ${fecha}\n\n`;
   mensaje    += `━━━━━━━━━━━━━━━━━━━━\n`;
-  mensaje    += `💰 *Monto total:* ${formatMoney(monto)}\n`;
+  mensaje    += `*Monto total:* ${formatMoney(monto)}\n`;
 
   if (liquidado) {
-    mensaje += `✅ *Estado:* ¡Pago completado!\n`;
+    mensaje += `*Estado:* ¡Pago completado!\n`;
     mensaje += `━━━━━━━━━━━━━━━━━━━━\n\n`;
-    mensaje += `¡Muchas gracias por tu aportación! 🙏\n`;
+    mensaje += `¡Muchas gracias por tu aportación! \n`;
     mensaje += `_Tu pago ha sido registrado correctamente._`;
   } else {
-    mensaje += `💵 *Abonado:* ${formatMoney(anticipo)}\n`;
-    mensaje += `⏳ *Saldo pendiente:* ${formatMoney(pendiente)}\n`;
+    mensaje += `*Abonado:* ${formatMoney(anticipo)}\n`;
+    mensaje += `*Saldo pendiente:* ${formatMoney(pendiente)}\n`;
     mensaje += `━━━━━━━━━━━━━━━━━━━━\n\n`;
-    mensaje += `¡Gracias por tu abono! 🙏\n`;
+    mensaje += `¡Gracias por tu abono! \n`;
     mensaje += `_Recuerda liquidar tu saldo pendiente._`;
   }
 
